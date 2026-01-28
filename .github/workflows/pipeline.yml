@@ -22,10 +22,45 @@ jobs:
           cache: maven
 
       - name: Build and Test with Maven
+        # compila ed esegue i test calcolando la copertura
         run: mvn clean test
 
-      - name: Upload Coverage Report
+      - name: Generate tsDetect Input CSV
+        # questo script garantisce la GENERALITÀ, senza intervento manuale:
+        # scansiona src/test/java e lo associa al corrispondente src/main/java
+        # con "sed" indovino il nome del source file dal nome del file di test
+        run: |
+          > input.csv
+          find src/test/java -name "*Test.java" | while read testfile; do
+            prodfile=$(echo $testfile | sed 's/test/main/g' | sed 's/Test//g')
+            echo "Testing-Automation-Lab,$testfile,$prodfile" >> input.csv
+          done
+          cat input.csv # stampo il file nel log per debug
+
+      - name: Download tsDetect
+        # scarico tsDetect da internet ogni volta, così non devo caricarlo nella repo (per pulizia)
+        run: curl -L -o TestSmellDetector.jar https://github.com/TestSmells/TestSmellDetector/releases/download/v2.2/TestSmellDetector.jar
+
+      - name: Run Test Smell Detection
+        # esecuzione tsDetect
+        run: |
+          # pulizia preventiva per far si che il * trovi un solo file nuovo
+          rm -f smells_output.csv
+          rm -f Output_TestSmellDetection_*.csv
+            
+          # eseguo tsDetect
+          java -jar TestSmellDetector.jar input.csv smells_output.csv
+            
+          # sposto il file creato in quello standard, eliminando automaticamente il file Output_TestSmellDetection_*.csv
+          mv Output_TestSmellDetection_*.csv smells_output.csv
+            
+          echo "Smell report salvato in smells_output.csv"
+
+      - name: Upload Artifacts
+        # salvo sia il report di copertura che quello degli smells
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-report
-          path: target/site/jacoco/
+          name: automation-reports
+          path: |
+            target/site/jacoco/
+            smells_output.csv
