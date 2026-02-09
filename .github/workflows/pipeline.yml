@@ -72,9 +72,9 @@ jobs:
           # conto quante volte appare 1 nelle colonne degli smells.
           TOTAL_SMELLS=$(grep -o ",1" smells_output.csv | wc -l | xargs)
             
-          # calcolo percentuale copertura di Jacoco: riga 1 (è unica), colonna 3 sono le istruzioni non coperte e colonna 4 quelle coperte.
+          # calcolo percentuale copertura di Jacoco: carico tutte le righe saltando l'intestazione, colonna 3 sono le istruzioni non coperte e colonna 4 quelle coperte e calcolo la somma per ogni riga.
           # la percentuale di cov si calcola come 100 * coperte / (mancate+coperte)
-          COVERAGE=$(python3 -c "import csv; f=open('target/site/jacoco/jacoco.csv'); r=list(csv.reader(f)); print(int(100*int(r[1][4])/(int(r[1][4])+int(r[1][3]))))" 2>/dev/null || echo "100")
+          COVERAGE=$(python3 -c "import csv; data=list(csv.reader(open('target/site/jacoco/jacoco.csv')))[1:]; missed=sum(int(r[3]) for r in data); covered=sum(int(r[4]) for r in data); print(int(100*covered/(covered+missed))) if (covered+missed)>0 else print(0)" 2>/dev/null || echo "0")
             
           # scrivo sui placeholder nel README col comando sed
           sed -i "s/<!-- coverage -->/$COVERAGE/" README.md
