@@ -25,17 +25,9 @@ jobs:
         # compila ed esegue i test calcolando la copertura
         run: mvn clean test
 
-      - name: Generate tsDetect Input CSV
-        # questo script garantisce la GENERALITÀ, senza intervento manuale:
-        # scansiona src/test/java e lo associa al corrispondente src/main/java
-        # con "sed" indovino il nome del source file dal nome del file di test
-        run: |
-          > input.csv
-          find src/test/java -name "*Test.java" | while read testfile; do
-            prodfile=$(echo $testfile | sed 's/test/main/g' | sed 's/Test//g')
-            echo "Testing-Automation-Lab,$testfile,$prodfile" >> input.csv
-          done
-          cat input.csv # stampo il file nel log per debug
+      - name: Run Dynamic Linker
+        # genera il file input.csv necessario per tsDetect tramite lo script python
+        run: python3 utils/linker.py
 
       - name: Download tsDetect
         # scarico tsDetect da internet ogni volta, così non devo caricarlo nella repo (per pulizia)
