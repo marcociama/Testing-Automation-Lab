@@ -62,15 +62,18 @@ jobs:
         run: |
           # calcolo il numero totale di smells dal CSV
           # conto quante volte appare 1 nelle colonne degli smells.
-          TOTAL_SMELLS=$(grep -o ",1" smells_output.csv | wc -l | xargs)
+          TOTAL_SMELLS=$(python3 -c "import csv; print(sum(sum(int(v) for v in r[7:] if v.isdigit()) for r in list(csv.reader(open('smells_output.csv')))[1:]))")
             
           # calcolo percentuale copertura di Jacoco: carico tutte le righe saltando l'intestazione, colonna 3 sono le istruzioni non coperte e colonna 4 quelle coperte e calcolo la somma per ogni riga.
           # la percentuale di cov si calcola come 100 * coperte / (mancate+coperte)
           COVERAGE=$(python3 -c "import csv; data=list(csv.reader(open('target/site/jacoco/jacoco.csv')))[1:]; missed=sum(int(r[3]) for r in data); covered=sum(int(r[4]) for r in data); print(int(100*covered/(covered+missed))) if (covered+missed)>0 else print(0)" 2>/dev/null || echo "0")
+          
+          # copio dal template i placeholder
+          cp utils/README.template.md README.md 
             
           # scrivo sui placeholder nel README col comando sed
-          sed -i "s/<!-- coverage -->/$COVERAGE/" README.md
-          sed -i "s/<!-- smells -->/$TOTAL_SMELLS/" README.md
+          sed -i "s/{{COVERAGE}}/$COVERAGE%/g" README.md
+          sed -i "s/{{SMELLS}}/$TOTAL_SMELLS/g" README.md
 
       - name: Commit and Push changes
         # permette alla pipeline di scrivere sul repository

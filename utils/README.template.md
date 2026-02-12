@@ -1,8 +1,8 @@
 # Testing-Automation-Lab 🚀
 
 ## 📊 Stato del Progetto
-* **Code Coverage:** 77%
-* **Test Smells rilevati:** 6
+* **Code Coverage:** {{COVERAGE}}
+* **Test Smells rilevati:** {{SMELLS}}
 * **Ultima Build:** ![Build Status](https://github.com/marcociama/Testing-Automation-Lab/actions/workflows/pipeline.yml/badge.svg)
 
 ## 🎯 Obiettivi
